@@ -1,0 +1,529 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+  <head>
+    <title>clTcl Manual</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+  </head>
+  
+  <body>
+    <div class="header">
+      <h1>clTcl Manual</h1>
+      <a href="index.html">Home</a>
+      <a href="installation.html">Installation</a>
+      <a href="manual.html">Manual</a>
+      <a href="samples.html">Examples</a>
+      <a href="specification.html">Specification</a>       
+    </div>
+    
+    <hr/>
+    
+    <h2>Contents</h2>
+    
+    <p>
+      <ul>
+	<li>
+	  <a href="#GUIprogramming">GUI programming</a>
+	  <ul>
+	    <li><a href="#embeddingscripts">Embedding scripts</a></li>
+	    <li><a href="#setup">Setting up an application</a></li>
+	    <li><a href="#events">Event handlers</a></li>
+	    <li><a href="#call">Calling and posting commands</a></li>
+	    <li><a href="#run">Running scripts</a></li>
+	    <li><a href="#handlingdata">Handling Tcl/Tk data</a></li>
+	    <li><a href="#escaping">Properly escaped strings</a></li>
+	    <li><a href="#repl">The repl</a></li>
+	  </ul>
+	</li>
+	<li>
+	  <a href="#lowerlevel">Lower level functions</a>
+	  <ul>
+	    <li><a href="#injecting">Injecting values into a script</a></li>
+	    <li><a href="#streams">Working with Tcl/Tk streams</a></li>
+	    <li><a href="#reading">Reading Tcl</a></li>
+	  </ul>
+	</li>
+      </ul>
+    </p>
+    
+    
+    <h2><a name="GUIprogramming">GUI programming</a></h2>
+    
+    <p>
+      The most important functions for GUI programming are
+      <ul>
+	<li>
+	  <small><a href="dictionary.html#event-loop">event-loop</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#call">call</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#post">post</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#run">run</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#read-tcl-list-from-string1">read-Tcl-list-from-string1</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#write-list-to-tcl-string">write-list-to-Tcl-string</a></small>
+	</li>
+      </ul>
+      and less frequently used
+      <ul>
+	<li>
+	  <small><a href="dictionary.html#keep-listening">keep-listening</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#*trace-level*">*trace-level*</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#*debug*">*debug*</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#*interpreter*">*interpreter*</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#*stream*">*stream*</a></small>
+	</li>
+      </ul>
+    </p>
+    
+    <h3><a name="embeddingscripts">Embedding scripts</a></h3>
+    
+    <p>
+      Scripts are embedded with the <small>#TCL[...]</small>
+      syntax. At the dots any literal Tcl script can occur. For example
+      <pre>
+(cltcl:event-loop
+  #TCL[message .m -text "Your message here"
+       button .b -text "Close" -command exit
+       pack .m
+       pack .b])
+      </pre>
+    </p>
+    
+    <p>A script is read as a quoted list of strings with each string a
+      command from the script. The previous example could also have
+      been written as
+      <pre>
+(let ((script #TCL[message .m -text "Your message here"
+ 	           button .b -text "Close" -command exit
+   	           pack .m
+	           pack .b]))
+  (cltcl:event-loop script))
+      </pre>
+      or even as 
+      <pre>
+(let ((partA #TCL[message .m -text "Your message here"
+	          button .b -text "Close" -command exit])
+      (partB #TCL[pack .m
+	          pack .b]))
+  (cltcl:event-loop (append partA partB)))
+      </pre>
+      The next repl interaction shows how <small>#TCL</small> reads a
+      script
+      <pre>
+CL-USER> (dolist (x #TCL[message .m -text "Your message here here"
+                         button .b -text "Close" -command exit 
+                         pack .m
+                         pack .b])
+           (print x))
+"message .m -text \"Your message here\""
+"button .b -text \"Close\" -command exit"
+"pack .m"
+"pack .b"
+NIL
+CL-USER>
+	</pre>
+    </p>
+    
+    
+    <h3><a name="setup">Setting up an application</a></h3>
+    
+    <p> Use
+      function <small><a href="dictionary.html#event-loop">event-loop</a></small>
+      to set up an event loop for your application. It starts the
+      Tcl/Tk interpreter, executes the given script and starts
+      listening for events to dispatch.
+    </p>
+    
+    <p>
+      A typical application event loop might look like the following
+      fragment
+      <pre>
+(let ((script #TCL[proc main {} {
+                     wm title . "Your appname here"
+
+                     # Add a menu bar
+                     menu .mbar
+                     . config -menu .mbar
+                 
+                     # Add a file menu
+                     menu .mbar.file -tearoff 0
+                     .mbar add cascade -label "File" -underline 0 -menu .mbar.file
+                     .mbar.file add command \
+                       -label "Open..." \
+                       -accelerator "Ctrl+O" \
+                       -underline 0 \
+                       -command {cltcl::callLisp on-file-open}
+                     .mbar.file add separator
+                     .mbar.file add command -label "Exit..." -command exit
+                     # etc
+                   
+                     # Widgets
+                     text .t 
+                     # etc
+                   
+                     # Let a window manager display the widgets.
+                     grid .t -sticky nsew
+                     grid rowconfigure . 0 -weight 1
+                     grid columnconfigure . 0 -weight 1
+                   
+                     #etc
+                   }
+
+                   main]))
+  (handler-bind 
+    ((condition (lambda (error)
+                  (ignore-errors
+                    (cltcl:call "tk_messageBox"
+                                :message (format nil "Error:~2%~A" error)))
+		  (cltcl:keep-listening))))
+   (cltcl:event-loop script)))
+      </pre>
+      The Tcl/Tk script defines proc <small>main</small> and ends with
+      a call to it (it is usually a good idea to define a proc to
+      avoid polluting Tcl/Tk's namespace for variables). The script is
+      run
+      by <small><a href="dictionary.html#event-loop">event-loop</a></small>. The
+      condition handlers catches errors that occur in event
+      handlers. Restart <small><a href="dictionary.html#keep-listening">keep-listening</a></small>
+      prevents abortion of the even loop.
+    </p>
+
+    <p>During development you might want to remove the condition
+      handler and let the debugger catch the error. In that case the
+      debugger shows the restart as an option.
+    </p>
+    
+    <p> During the event loop's lifetime
+      variable <small><a href="dictionary.html#*stream*">*stream*</a></small>
+      is bound to the stream that connects to the interpreter to make
+      it accessable from event handlers. This stream is used by
+      functions <small><a href="dictionary.html#call">call</a></small>,
+      <small><a href="dictionary.html#post">post</a></small>
+      and <small><a href="dictionary.html#run">run</a></small>.
+    </p>
+    
+    <p>The event loop also binds
+      variable <small><a href="dictionary.html#*interpreter*">*interpreter*</a></small>
+      to the interpreter that was given to make it the default for
+      nested event loops. Therefore you have to give the path to the
+      interpreter only once at the top level of you application. This
+      variable's value is the default for the :interpreter keyword in
+      other functions
+    </p>
+
+    
+    <h3><a name="events">Event handlers</a></h3>
+
+    <p>
+      User events in Tcl/Tk are handled by scripts that are bound to a
+      widget via the <small>bind</small> command or via
+      the <small>-command</small> option. Use
+      function <small>cltcl::callLisp</small> in a Tck/Tk event to make a
+      call back to Lisp. The event loop listener calls the Lisp event
+      handler. For example
+      <pre>
+(cltcl:event-loop
+  #TCL[set counter 0
+       button .b -text "Click me and watch your repl" -command {
+         cltcl::callLisp print $counter
+         set counter [expr $counter+1]
+       }
+       button .c -text Close -command exit
+       pack .b
+       pack .c])
+      </pre>
+      When the button is clicked a call is make to
+      Lisp's <small>print</small> function.
+    </p>
+
+    <p>
+      Function <small>cltcl::callLisp</small> expects a command and a number
+      of arguments:
+      <pre>
+cltcl::callLisp function ?arg0 ?arg1 ...?
+      </pre>
+      The listener applies the Lisp function to the arguments, sends
+      the result back to Tcl/Tk as a properly escaped string, and
+      resumes listening.
+    </p>
+
+    <h3><a name="call">Calling and posting commands</a></h3>
+    
+    <p>Use
+      function <small><a href="dictionary.html#call">call</a></small>
+      to call a Tcl/Tk command from an event handler. For example a
+      handler <small>on-file-open</small> for the example application
+      top loop could start as follows:
+      <pre>
+(defun on-file-open ()
+  "Called when the user selects the 'File Open menu."
+  (let ((file (cltcl:call "tk_getOpenFile"
+                          :defaultextension ".lisp"
+                          :filetypes '(("Lisp" ".lisp")
+                                       ("All files" ".*")))))
+    ...))
+      </pre>
+The call corresponds to Tcl/Tk call
+      <pre>
+tk_getOpenFile -defaultextension ".lisp" \
+  -filetypes {{"Lisp" ".lisp"} {"All files" ".*"}}
+      </pre>
+    </p>
+    
+    <p>
+      Function <small><a href="dictionary.html#call">call</a></small>
+      expects a command and a number of arguments and lets Tcl/Tk
+      interpret the command with all arguments properly escaped. For
+      convenience keyword symbols are written with a hyphen prefixed,
+      the Tcl convention for options. All other values are written to
+      string and escaped.
+    </p>
+
+    <p>
+      Function <small><a href="dictionary.html#post">post</a></small>
+      is similar to
+      function <small><a href="dictionary.html#call">call</a></small>
+      except it doesn't wait for a reply. Since this doesn't disrupt
+      the event loop's listener this can for example be useful to
+      update the gui from a seperate thread.
+    </p>
+
+    <p>
+      Calling commands with
+      function <small><a href="dictionary.html#call">call</a></small> or 
+<small><a href="dictionary.html#post">post</a></small> is a good
+      way to exchange information with Tcl/TK. It takes care of all
+      necessary string escaping. If you inject them in a script with
+      function <small><a href="dictionary.html#format-script">format-script</a></small>
+      you have to take care of the escaping yourself.
+    </p>
+
+    
+    <h3><a name="run">Running scripts</a></h3> 
+    
+    <p>
+      Run scripts from an event handler with
+      function <small><a href="dictionary.html#run">run</a></small>. The
+      arguments are bound to Tcl variable <small>argv</small>. This
+      variable normally contains a Tcl script's command line
+      arguments.
+    </p>
+
+    <p>
+      Although the arguments of <small>run</small> are properly
+      escaped, often it is more convenient to simply wrap the script
+      in a Tcl proc. The script containing this proc needs to be run
+      only once and the proc can be called safely with
+      function <small><a href="dictionary.html#call">call</a></small>
+      or <small><a href="dictionary.html#post">post</a></small>.
+    </p>
+
+    <h3><a name="handlingdata">Handling Tcl data</a></h3>
+    
+    <p> Any peace of Tcl data is a string so that is easy. The only
+      difficult part is handling Tcl lists.
+    </p>
+    
+    <p> Tcl has a peculiar way of writing lists but as long as you
+      know the list structure this is no problem. A list is written
+      as a whitespace seperated string. The problem is that not
+      every whitespace seperated list was necessarily intended to be
+      a list. For that reason there are no inverse conversion
+      functions between Tcl lists and Lisp lists. 
+    </p>
+    
+    <p> Use function <small><a href="dictionary.html#write-list-to-tcl-string">write-list-to-Tcl-string</a></small>
+      to write a Lisp list to a Tcl string. For example
+      <pre>
+CL-USER> (cltcl:write-list-to-Tcl-string
+           (list "foo" "foo bar" (list "foo" "foo bar")))
+"foo foo\\ bar {foo foo\\ bar}"
+      </pre>
+      All list items are properly escaped and nested lists are written
+      recursively.
+    </p>
+    
+    <p> Use function <small><a href="dictionary.html#read-tcl-list-from-string1">read-tcl-list-from-string1</a></small>
+      to read a Tcl list from a string. Continuing from the previous example
+      <pre>
+CL-USER> (cltcl:read-tcl-list-from-string1 *)
+("foo" "foo bar" "foo foo\\ bar") 
+CL-USER> (cltcl:read-tcl-list-from-string1 (third *))
+ ("foo" "foo bar")
+      </pre>
+      Nested lists are left intact, just the top level of the list is
+      read.
+    </p>
+    
+    <p> The next example show why reading is not recursive. The string "foo bar" would be seen as a list.
+      <pre>
+CL-USER> (cltcl:read-tcl-list-from-string1 (second *))
+("foo" "bar")     
+      </pre>
+      You have make the proper calls depending on the contents of a
+      list.
+    </p>
+    
+    <h3><a name="escaping"></a>Properly escaped strings</h3>
+
+    <p>
+      Functions <small><a href="dictionary.html#call">call</a></small>, <small><a href="dictionary.html#run">run</a></small>
+      and <small><a href="dictionary.html#write-list-to-tcl-string">write-list-to-Tcl-string</a></small>
+      escape their arguments and are always safe to use. For other
+      functions you have to ensure yourself that values are properly
+      escaped.
+    </p>
+    
+    <p> Use
+    function <small><a href="dictionary.html#escape">escape</a></small>
+    to escape strings. String that are not properly escaped might
+    contain Tcl commands that could be evaluated unintenionally.
+    </p>
+    
+    <h3><a name="repl"></a>The repl</h3>
+
+    <p>
+      Function <small><a href="dictionary.html#repl">repl</a></small>
+      start a read-eval-print loop. Be careful not to send commands
+      that write output because that will be picked up by the
+      listener. You might want to run the event loop in a seperate
+      thread to have access to the Lisp repl. Then you can start the
+      clTcl repl from there.
+    </p>
+
+    
+    <h2><a name="lowerlevel"></a>Lower level functions</h2>
+    
+    
+    
+    <p>
+      Functions for reading and manipulation Tcl/Tk scripts and data are
+      <ul>
+	<li>
+	  <small><a href="dictionary.html#read-script">read-script</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#read-list">read-list</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#read-word">read-word</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#format-script">format-script</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#escape">escape</a></small>
+	</li>
+      </ul>
+      Functions to connect to a Tcl/Tk interpreter are
+      <ul>
+	<li>
+	  <small><a href="dictionary.html#with-tcl/tk">with-Tcl/Tk</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#open-tcl/tk-stream">open-Tcl/Tk-stream</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#close-tcl/tk-stream">close-Tcl/Tk-stream</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#send-script">send-script</a></small>
+	</li>
+	<li>
+	  <small><a href="dictionary.html#receive-line">receive-line</a></small>
+	</li>
+      </ul>
+    </p>
+    
+    
+    <h3><a name="injecting">Injecting values into a script</a></h3>
+    
+    <p> Use
+      function <small><a href="dictionary.html#format-script">format-script</a></small>
+      to inject Lisp values into a Tcl script. All formatter commands
+      can be used but usually <small>~A</small> is
+      sufficient. Use <small>[list ~A]</small> for lists, as in the
+      following example.
+      <pre>
+(cltcl:event-loop
+  (cltcl:format-script
+    #TCL[set l [list ~A]
+         tk_messageBox -message ~A
+         button .b -text ~A -command {
+           foreach x $l {
+             tk_messageBox -message $x
+           }
+           exit
+         }
+         pack .b]
+    (cltcl:write-list-to-Tcl-string 
+      (list "[expr 1 + 1]" "[list foo bar]"))
+    "[expr 1 + 1]"
+    (cltcl:escape "[exit]")))
+      </pre>
+      All strings contain Tcl command, but only one of them gets
+      evaluated, the "[expr 1 + 1]" that is not escaped.
+    </p>
+    
+    <p>
+      Be careful and always use <small><a href="dictionary.html#escape">escape</a></small> to prevent code injection.
+    </p>
+    
+    <h3><a name="streams"></a>Working with Tcl/Tk streams</h3>
+    
+    <p> See the specification
+      for <small><a href="dictionary.html#with-tcl/tk">with-Tcl/Tk</a></small>,
+      <small><a href="dictionary.html#open-tcl/tk-stream">open-Tcl/Tk-stream</a></small>, <small><a href="dictionary.html#close-tcl/tk-stream">close-Tcl/Tk-stream</a></small>,
+      <small><a href="dictionary.html#send-script">send-script</a></small>
+      and <small><a href="dictionary.html#receive-line">receive-line</a></small>. These
+      functions hide the implementation dependent details behind an
+      abstraction layer.
+    </p>
+	  
+	  
+    <h3><a name="reading"></a>Reading Tcl</h3>
+	  
+    <p> See the specification for
+      functions <small><a href="dictionary.html#read-script">read-script</a></small>, <small><a href="dictionary.html#read-list">read-list</small></a>
+      and <a href="dictionary.html#read-word"><small>read-word</small></a>. Tcl's
+      syntax rules are described <a href="http://www.tcl.tk/man/tcl8.5/TclCmd/Tcl.htm">here</a>.
+    </p>
+
+
+
+    <hr/>
+    
+    <div class="footer">
+      <a>PRG</a>, november 2009.
+    </div>
+    
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+    
+  </body>
+</html>

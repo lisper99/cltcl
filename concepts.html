@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>clTcl Concepts</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+  </head>
+
+  
+  
+  <body>
+    <div class="header">
+      <h1>clTcl Concepts</h1>
+      <a href="index.html">Home</a>
+      <a href="installation.html">Installation</a>
+      <a href="manual.html">Manual</a>
+      <a href="samples.html">Examples</a>
+      <a href="specification.html">Specification</a>       
+    </div>
+    
+    <hr/>
+
+    <p> The clTcl package embeds Tcl/Tk in Common Lisp. It parses Tcl
+    scripts into lists of strings. These strings are properly escaped
+    so they can be send to a Tcl/Tk interpreter. The package provides
+    an interface to launch Tcl/Tk and setup a two-way stream for
+    communication. Finally it provides synchronized communication
+    between Lisp and Tcl/Tk.</p>
+
+    <h2>Embedded Tcl</h2>
+
+    <p>Tcl scripts are parsed into list of strings. Just like Lisp,
+    Tcl has a uniform syntax that is easily parsed. A Tcl script is a
+    list of commands. The script is read and every command becoms a
+    properly escaped string.</p>
+
+    <p>Reader macro <small>#TCL[]</small> reads the Tcl script between
+    square brackets.</p>
+
+    <h2>Running Tcl/Tk</h2>
+
+    <p>A running clTcl program is a Lisp process and a Tcl/Tk process
+    that communicate via a two-way stream. Launching Tcl/Tk is
+    implementation dependent. The stream is available via global
+    *stream*.</p>
+    
+    <h2>The event loop</h2>
+
+    <p>The event-loop is synchronized with Tcl/Tk's event loop. There
+    is a single flow of control that switches back and forth between
+    Lisp and Tcl/Tk.  </p>
+
+    <p>The event-loop starts a Tcl/Tk process, loads the given script
+    and starts listening for events. When the user exits the
+    application the event-loop terminates and so does the application.</p>
+
+    <p>The typical flow of control during a cycle in the event loop is
+      <ol>
+	<li>
+	  A Tcl procedure gets triggered by a user action.
+	</li>
+	
+	<li>If the Lisp side needs to be involved it is called with
+	  Tcl proc callLisp. It calls a function on the Lisp side and
+	  waits for a result.
+	</li>
+
+	<li>The called Lisp function does its business. If needed it
+	  calls Tcl/Tk. When the Lisp function is done its return
+	  value gets passed back to Tcl/Tk. The event finishes and
+	  Tcl/Tk waits for the next one.
+	</li>
+      </ol>
+    </p>
+
+    <hr/>
+    
+    <div class="footer">
+      <a>PRG</a>, november 2009.
+    </div>
+    
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+  
+ </body>
+</html>

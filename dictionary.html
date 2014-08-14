@@ -1,0 +1,371 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>clTcl Dictionary</title>
+    <link rel="stylesheet" type="text/css" href="style.css"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+  </head>
+
+
+  
+  
+  <body>
+    <div class="header">
+      <h1>clTcl Dictionary</h1>
+      <a href="index.html">Home</a>
+      <a href="installation.html">Installation</a>
+      <a href="manual.html">Manual</a>
+      <a href="samples.html">Examples</a>
+      <a href="specification.html">Specification</a>       
+    </div>
+    
+    <hr/>
+    
+    <!-- Generated html starts here -->
+
+<!-- Entry for *DEBUG* -->
+
+<p><br>[Special variable]<br><a class=none name='*debug*'><b>*debug*</b></a>
+<blockquote><br>
+
+If not nil the commands of a script are send one by one to the
+  interpreter. This eases localization of errors. Default nil.
+
+</blockquote>
+
+<!-- End of entry for *DEBUG* -->
+
+
+<!-- Entry for *INTERPRETER* -->
+
+<p><br>[Special variable]<br><a class=none name='*interpreter*'><b>*interpreter*</b></a>
+<blockquote><br>
+
+The default Tcl/Tk interpreter. Default value is /usr/bin/wish.
+
+</blockquote>
+
+<!-- End of entry for *INTERPRETER* -->
+
+
+<!-- Entry for *STREAM* -->
+
+<p><br>[Special variable]<br><a class=none name='*stream*'><b>*stream*</b></a>
+<blockquote><br>
+
+A two-way-stream connected to a Tcl/Tk interpreter or NIL if no
+  such interpreter is running. This stream is used by functions CALL,
+  POST and RUN.
+
+</blockquote>
+
+<!-- End of entry for *STREAM* -->
+
+
+<!-- Entry for *TRACE-LEVEL* -->
+
+<p><br>[Special variable]<br><a class=none name='*trace-level*'><b>*trace-level*</b></a>
+<blockquote><br>
+
+An integer that determines which events are traced in clTcl&#039;s
+communication protocol between Lisp and Tcl/Tk. Setting a larger
+number gives trace messages. Level -1 (the default) is complete
+silence, level 0 is errors only, level 1 is errors and events, level 2
+is errors, events and event details.
+
+</blockquote>
+
+<!-- End of entry for *TRACE-LEVEL* -->
+
+
+<!-- Entry for CALL -->
+
+<p><br>[Function]<br><a class=none name='call'><b>call</b> <i>command <tt>&amp;rest</tt> args</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Calls Tcl/Tk command COMMAND with arguments ARGS properly
+escaped. Arguments of type symbol are writting to a string and
+prefixed with a hyphen to support keyword for Tcl options. Other
+arguments are written to string if necessary and properly
+escaped. This function is typically used in a event that was invoked
+in a clTcl script run by EVENT-LOOP. Sends the command to *STREAM*.
+
+</blockquote>
+
+<!-- End of entry for CALL -->
+
+
+<!-- Entry for CLOSE-TCL/TK-STREAM -->
+
+<p><br>[Function]<br><a class=none name='close-tcl/tk-stream'><b>close-tcl/tk-stream</b> <i>stream</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Instructs the Tcl/Tk process associated with STREAM to exit and
+closes the stream. Arguments STREAM must be a stream created by
+OPEN-TCL/TK-STREAM. This function is implementation dependent.
+
+</blockquote>
+
+<!-- End of entry for CLOSE-TCL/TK-STREAM -->
+
+
+<!-- Entry for ESCAPE -->
+
+<p><br>[Function]<br><a class=none name='escape'><b>escape</b> <i>x</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Escapes all characters that have a special meaning for
+Tcl (includes whitespace) with a backslash.
+
+</blockquote>
+
+<!-- End of entry for ESCAPE -->
+
+
+<!-- Entry for EVENT-LOOP -->
+
+<p><br>[Function]<br><a class=none name='event-loop'><b>event-loop</b> <i>script <tt>&amp;key</tt> interpreter options arguments</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Starts Tcl/Tk interpreter located at INTERPRETER, binds *STREAM* to
+the stream that connects to Tcl/Tk, binds *INTERPRETER* to
+INTERPRETER, runs SCRIPT on ARGUMENTS and starts listening on the
+stream. Use command &#039;exit&#039; to end the listener. Establishes a binding
+for restart KEEP-LISTENING to recover from errors in an event
+handler. The default value for INTERPRETER is *INTERPRETER. Keyword
+OPTIONS is passed to the interpreter.
+
+</blockquote>
+
+<!-- End of entry for EVENT-LOOP -->
+
+
+<!-- Entry for FORMAT-SCRIPT -->
+
+<p><br>[Function]<br><a class=none name='format-script'><b>format-script</b> <i>script <tt>&amp;rest</tt> args</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Applies function FORMAT to SCRIPT&#039;s commands sequentially. Each
+element consumes its required formatter arguments from ARGS, leaving
+the rest of the arguments for the rest of the commands. For clTcl
+script written with #TCL[...] this gives the effect of a single format
+on the entire Tcl code.
+
+</blockquote>
+
+<!-- End of entry for FORMAT-SCRIPT -->
+
+
+<!-- Entry for KEEP-LISTENING -->
+
+<p><br>[Function]<br><a class=none name='keep-listening'><b>keep-listening</b> <i></i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+A restart applicable during errors in events. Transfers control
+back to Tcl and resumes listening.
+
+</blockquote>
+
+<!-- End of entry for KEEP-LISTENING -->
+
+
+<!-- Entry for OPEN-TCL/TK-STREAM -->
+
+<p><br>[Function]<br><a class=none name='open-tcl/tk-stream'><b>open-tcl/tk-stream</b> <i><tt>&amp;key</tt> interpreter options</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Starts a Tcl/Tk interpreter and creates and returns a two-way
+stream connected to this Tcl/Tk process. This function and the meaning
+of arguments INTERPRETER and OPTIONS are implementation dependent.
+
+</blockquote>
+
+<!-- End of entry for OPEN-TCL/TK-STREAM -->
+
+
+<!-- Entry for POST -->
+
+<p><br>[Function]<br><a class=none name='post'><b>post</b> <i>command <tt>&amp;rest</tt> args</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Posts Tcl/Tk command COMMAND with arguments ARGS properly escaped
+as an event and does not wait for a reply. Arguments of type symbol
+are writting to a string and prefixed with a hyphen to support keyword
+for Tcl options. Other arguments are written to string if necessary
+and properly escaped. Sends the command to *STREAM*.
+
+</blockquote>
+
+<!-- End of entry for POST -->
+
+
+<!-- Entry for READ-LIST -->
+
+<p><br>[Function]<br><a class=none name='read-list'><b>read-list</b> <i><tt>&amp;optional</tt> stream terminator</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Reads a Tcl list from STREAM. Reads Tcl words until an end of file
+occurs or READ-WORD finds TERMINATOR (when given), a semi-colon or a
+newline. The Tcl list is returned as a string. The default value for
+STREAM is *STANDARD-INPUT*. Returns NIL if end of file is found
+immediately.
+
+</blockquote>
+
+<!-- End of entry for READ-LIST -->
+
+
+<!-- Entry for READ-SCRIPT -->
+
+<p><br>[Function]<br><a class=none name='read-script'><b>read-script</b> <i><tt>&amp;optional</tt> stream terminator</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Reads a Tcl script from STREAM. Reads Tcl commands until READ-LIST
+finds TERMINATOR (when given) or an end of file occurs. Returns the
+commands as a list of strings. The default value for STREAM is
+*STANDARD-INPUT*.
+
+</blockquote>
+
+<!-- End of entry for READ-SCRIPT -->
+
+
+<!-- Entry for READ-TCL-LIST-FROM-STRING1 -->
+
+<p><br>[Function]<br><a class=none name='read-tcl-list-from-string1'><b>read-tcl-list-from-string1</b> <i>string</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Converts Tcl list STRING into a list of strings. Items are
+delimited by whitespace.
+
+</blockquote>
+
+<!-- End of entry for READ-TCL-LIST-FROM-STRING1 -->
+
+
+<!-- Entry for READ-WORD -->
+
+<p><br>[Function]<br><a class=none name='read-word'><b>read-word</b> <i>stream <tt>&amp;optional</tt> eof-error-p eof-value recursive-p terminator echo-p</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Reads a Tcl word from STREAM and returns it as a string. Reads
+characters untill the next one is a terminator. The terminator itself
+is not read. Terminators are TERMINATOR (when given), whitespace or
+Tcl list terminators. Throws an error if an end of file occurs, unless
+EOF-ERROR-P is nil, in which case it returns EOF-VALUE. If ECHO-P is
+non nil then escape characters are not handled and the word is
+literally copied.
+
+</blockquote>
+
+<!-- End of entry for READ-WORD -->
+
+
+<!-- Entry for RECEIVE-LINE -->
+
+<p><br>[Function]<br><a class=none name='receive-line'><b>receive-line</b> <i>stream</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Reads a Tcl list from STREAM including the terminating
+character. Returns nil if an end of file occurs.
+
+</blockquote>
+
+<!-- End of entry for RECEIVE-LINE -->
+
+
+<!-- Entry for REPL -->
+
+<p><br>[Function]<br><a class=none name='repl'><b>repl</b> <i></i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+A read-eval-print loop. Useful for development. Prompts for
+commands to send to the Tcl/Tk interpreter and prints the reply.
+
+</blockquote>
+
+<!-- End of entry for REPL -->
+
+
+<!-- Entry for RUN -->
+
+<p><br>[Function]<br><a class=none name='run'><b>run</b> <i>script <tt>&amp;rest</tt> args</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Sends SCRIPT via *STREAM* to Tcl/Tk and waits for a reply. This
+function is typically used in a event that was invoked in a clTcl
+script run by EVENT-LOOP. Sets Tcl/Tk variable argv to ARGS, properly
+escaped.
+
+</blockquote>
+
+<!-- End of entry for RUN -->
+
+
+<!-- Entry for SEND-SCRIPT -->
+
+<p><br>[Function]<br><a class=none name='send-script'><b>send-script</b> <i>stream script</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Sends clTcl script SCRIPT to a running Tcl/Tk interpreter via
+stream STREAM. The stream must be one that was opened with
+OPEN-TCL/TK-STREAM. The script must be a list of strings, each string
+being a valid Tcl command.
+
+</blockquote>
+
+<!-- End of entry for SEND-SCRIPT -->
+
+
+<!-- Entry for WITH-TCL/TK -->
+
+<p><br>[Macro]<br><a class=none name='with-tcl/tk'><b>with-tcl/tk</b> <i>(var <tt>&amp;rest</tt> args) declaration* statement*</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Uses OPEN-TCL/TK-STREAM to start a Tcl/Tk interpreter and connect
+to it by a two-way stream. Arguments ARGS are used as keyword
+arguments to OPEN-TCL/TK-STREAM. The forms in BODY are evaluated as an
+implicit progn with VAR bound to the stream returned by
+OPEN-TCL/TK-STREAM. When control leaves the body, either normally or
+abnormally, the stream is closed with CLOSE-TCL/TK-STREAM.
+
+</blockquote>
+
+<!-- End of entry for WITH-TCL/TK -->
+
+
+<!-- Entry for WRITE-LIST-TO-TCL-STRING -->
+
+<p><br>[Function]<br><a class=none name='write-list-to-tcl-string'><b>write-list-to-tcl-string</b> <i>list</i> =&gt; <i>result</i></a>
+<blockquote><br>
+
+Converts list to a Tcl string. Nested lists are converted
+recursively. Strings are escaped. Other values are written to string
+and escaped.
+
+</blockquote>
+
+<!-- End of entry for WRITE-LIST-TO-TCL-STRING -->
+
+
+    <!-- Generated html end here -->
+
+    <hr/>
+    
+    <div class="footer">
+      <a>PRG</a>, november 2009.
+    </div>
+    
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+var pageTracker = _gat._getTracker("UA-5527808-1");
+pageTracker._trackPageview();
+</script>
+  
+ </body>
+</html>
